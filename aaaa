@@ -1,5 +1,5 @@
--- Modern Roblox UI Library
--- Clean, customizable UI system with toggles, sliders, buttons, textboxes and sections
+-- Professional Roblox UI Library
+-- Clean, mature design with collapsible sections and nested components
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -13,34 +13,35 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 local UILibrary = {}
 UILibrary.__index = UILibrary
 
--- Theme Configuration
+-- Professional Theme
 local Theme = {
-    Background = Color3.fromRGB(25, 25, 35),
-    Secondary = Color3.fromRGB(35, 35, 45),
-    Accent = Color3.fromRGB(100, 150, 255),
+    Background = Color3.fromRGB(18, 18, 18),
+    Surface = Color3.fromRGB(25, 25, 25),
+    Elevated = Color3.fromRGB(32, 32, 32),
+    Accent = Color3.fromRGB(79, 172, 254),
+    AccentHover = Color3.fromRGB(97, 184, 255),
     Text = Color3.fromRGB(255, 255, 255),
-    TextSecondary = Color3.fromRGB(200, 200, 200),
-    Border = Color3.fromRGB(60, 60, 70),
-    Success = Color3.fromRGB(100, 255, 150),
-    Warning = Color3.fromRGB(255, 200, 100),
-    Error = Color3.fromRGB(255, 100, 100)
+    TextSecondary = Color3.fromRGB(156, 163, 175),
+    TextMuted = Color3.fromRGB(107, 114, 128),
+    Border = Color3.fromRGB(55, 65, 81),
+    Divider = Color3.fromRGB(75, 85, 99),
+    Success = Color3.fromRGB(34, 197, 94),
+    Warning = Color3.fromRGB(251, 191, 36),
+    Error = Color3.fromRGB(239, 68, 68)
 }
 
 -- Animation Settings
-local AnimationInfo = TweenInfo.new(
-    0.3,
-    Enum.EasingStyle.Quart,
-    Enum.EasingDirection.Out
-)
+local FastTween = TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local SlowTween = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
 -- Utility Functions
-local function CreateTween(object, properties)
-    return TweenService:Create(object, AnimationInfo, properties)
+local function CreateTween(object, properties, tweenInfo)
+    return TweenService:Create(object, tweenInfo or FastTween, properties)
 end
 
 local function CreateCorner(parent, radius)
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius or 8)
+    corner.CornerRadius = UDim.new(0, radius or 4)
     corner.Parent = parent
     return corner
 end
@@ -57,16 +58,16 @@ end
 -- Main Library Functions
 function UILibrary:CreateWindow(config)
     config = config or {}
-    local windowName = config.Name or "UI Library"
-    local windowSize = config.Size or UDim2.new(0, 500, 0, 400)
+    local windowName = config.Name or "Application"
+    local windowSize = config.Size or UDim2.new(0, 480, 0, 600)
     
     -- Main ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "ModernUILib"
+    ScreenGui.Name = "ProfessionalUI"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Try to parent to CoreGui, fallback to PlayerGui
+    -- Try CoreGui first
     local success = pcall(function()
         ScreenGui.Parent = CoreGui
     end)
@@ -74,9 +75,9 @@ function UILibrary:CreateWindow(config)
         ScreenGui.Parent = PlayerGui
     end
     
-    -- Main Frame
+    -- Main Container
     local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
+    MainFrame.Name = "MainContainer"
     MainFrame.Size = windowSize
     MainFrame.Position = UDim2.new(0.5, -windowSize.X.Offset/2, 0.5, -windowSize.Y.Offset/2)
     MainFrame.BackgroundColor3 = Theme.Background
@@ -85,127 +86,287 @@ function UILibrary:CreateWindow(config)
     MainFrame.Draggable = true
     MainFrame.Parent = ScreenGui
     
-    CreateCorner(MainFrame, 12)
+    CreateCorner(MainFrame, 8)
     CreateStroke(MainFrame, Theme.Border, 1)
     
-    -- Title Bar
-    local TitleBar = Instance.new("Frame")
-    TitleBar.Name = "TitleBar"
-    TitleBar.Size = UDim2.new(1, 0, 0, 40)
-    TitleBar.Position = UDim2.new(0, 0, 0, 0)
-    TitleBar.BackgroundColor3 = Theme.Secondary
-    TitleBar.BorderSizePixel = 0
-    TitleBar.Parent = MainFrame
+    -- Drop Shadow Effect
+    local Shadow = Instance.new("ImageLabel")
+    Shadow.Name = "Shadow"
+    Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    Shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Shadow.Size = UDim2.new(1, 20, 1, 20)
+    Shadow.BackgroundTransparency = 1
+    Shadow.Image = "rbxasset://textures/ui/Controls/DropShadow.png"
+    Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    Shadow.ImageTransparency = 0.7
+    Shadow.ScaleType = Enum.ScaleType.Slice
+    Shadow.SliceCenter = Rect.new(12, 12, 139, 139)
+    Shadow.ZIndex = MainFrame.ZIndex - 1
+    Shadow.Parent = MainFrame
     
-    CreateCorner(TitleBar, 12)
+    -- Header
+    local Header = Instance.new("Frame")
+    Header.Name = "Header"
+    Header.Size = UDim2.new(1, 0, 0, 50)
+    Header.Position = UDim2.new(0, 0, 0, 0)
+    Header.BackgroundColor3 = Theme.Surface
+    Header.BorderSizePixel = 0
+    Header.Parent = MainFrame
     
-    -- Title Bar Bottom
-    local TitleBarBottom = Instance.new("Frame")
-    TitleBarBottom.Size = UDim2.new(1, 0, 0, 12)
-    TitleBarBottom.Position = UDim2.new(0, 0, 1, -12)
-    TitleBarBottom.BackgroundColor3 = Theme.Secondary
-    TitleBarBottom.BorderSizePixel = 0
-    TitleBarBottom.Parent = TitleBar
+    CreateCorner(Header, 8)
     
-    -- Title Label
+    -- Header Bottom Overlay
+    local HeaderBottom = Instance.new("Frame")
+    HeaderBottom.Size = UDim2.new(1, 0, 0, 8)
+    HeaderBottom.Position = UDim2.new(0, 0, 1, -8)
+    HeaderBottom.BackgroundColor3 = Theme.Surface
+    HeaderBottom.BorderSizePixel = 0
+    HeaderBottom.Parent = Header
+    
+    -- Header Divider
+    local HeaderDivider = Instance.new("Frame")
+    HeaderDivider.Size = UDim2.new(1, 0, 0, 1)
+    HeaderDivider.Position = UDim2.new(0, 0, 1, 0)
+    HeaderDivider.BackgroundColor3 = Theme.Divider
+    HeaderDivider.BorderSizePixel = 0
+    HeaderDivider.Parent = Header
+    
+    -- Title
     local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Name = "TitleLabel"
-    TitleLabel.Size = UDim2.new(1, -50, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 15, 0, 0)
+    TitleLabel.Name = "Title"
+    TitleLabel.Size = UDim2.new(1, -60, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 20, 0, 0)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Text = windowName
     TitleLabel.TextColor3 = Theme.Text
     TitleLabel.TextSize = 16
-    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.Font = Enum.Font.GothamMedium
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.Parent = TitleBar
+    TitleLabel.Parent = Header
+    
+    -- Minimize Button
+    local MinimizeButton = Instance.new("TextButton")
+    MinimizeButton.Name = "MinimizeButton"
+    MinimizeButton.Size = UDim2.new(0, 24, 0, 24)
+    MinimizeButton.Position = UDim2.new(1, -70, 0.5, -12)
+    MinimizeButton.BackgroundColor3 = Theme.Elevated
+    MinimizeButton.BorderSizePixel = 0
+    MinimizeButton.Text = "−"
+    MinimizeButton.TextColor3 = Theme.TextSecondary
+    MinimizeButton.TextSize = 14
+    MinimizeButton.Font = Enum.Font.GothamMedium
+    MinimizeButton.Parent = Header
+    
+    CreateCorner(MinimizeButton, 4)
     
     -- Close Button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
-    CloseButton.Size = UDim2.new(0, 30, 0, 30)
-    CloseButton.Position = UDim2.new(1, -35, 0, 5)
+    CloseButton.Size = UDim2.new(0, 24, 0, 24)
+    CloseButton.Position = UDim2.new(1, -36, 0.5, -12)
     CloseButton.BackgroundColor3 = Theme.Error
     CloseButton.BorderSizePixel = 0
     CloseButton.Text = "×"
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextSize = 18
-    CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.Parent = TitleBar
+    CloseButton.TextSize = 14
+    CloseButton.Font = Enum.Font.GothamMedium
+    CloseButton.Parent = Header
     
-    CreateCorner(CloseButton, 6)
+    CreateCorner(CloseButton, 4)
     
-    -- Close Button Functionality
+    -- Button Hover Effects
+    MinimizeButton.MouseEnter:Connect(function()
+        CreateTween(MinimizeButton, {BackgroundColor3 = Theme.Border}):Play()
+    end)
+    MinimizeButton.MouseLeave:Connect(function()
+        CreateTween(MinimizeButton, {BackgroundColor3 = Theme.Elevated}):Play()
+    end)
+    
+    CloseButton.MouseEnter:Connect(function()
+        CreateTween(CloseButton, {BackgroundColor3 = Color3.fromRGB(220, 38, 38)}):Play()
+    end)
+    CloseButton.MouseLeave:Connect(function()
+        CreateTween(CloseButton, {BackgroundColor3 = Theme.Error}):Play()
+    end)
+    
+    -- Minimize/Close Functionality
+    local isMinimized = false
+    local originalSize = windowSize
+    
+    MinimizeButton.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        local targetSize = isMinimized and UDim2.new(0, windowSize.X.Offset, 0, 50) or originalSize
+        CreateTween(MainFrame, {Size = targetSize}, SlowTween):Play()
+        MinimizeButton.Text = isMinimized and "□" or "−"
+    end)
+    
     CloseButton.MouseButton1Click:Connect(function()
-        CreateTween(MainFrame, {Size = UDim2.new(0, 0, 0, 0)}):Play()
-        wait(0.3)
+        CreateTween(MainFrame, {Size = UDim2.new(0, 0, 0, 0)}, SlowTween):Play()
+        CreateTween(MainFrame, {BackgroundTransparency = 1}, SlowTween):Play()
+        wait(0.25)
         ScreenGui:Destroy()
     end)
     
-    -- Content Frame
-    local ContentFrame = Instance.new("ScrollingFrame")
-    ContentFrame.Name = "ContentFrame"
-    ContentFrame.Size = UDim2.new(1, -20, 1, -60)
-    ContentFrame.Position = UDim2.new(0, 10, 0, 50)
-    ContentFrame.BackgroundTransparency = 1
-    ContentFrame.BorderSizePixel = 0
-    ContentFrame.ScrollBarThickness = 6
-    ContentFrame.ScrollBarImageColor3 = Theme.Accent
-    ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    ContentFrame.Parent = MainFrame
+    -- Content Area
+    local ContentArea = Instance.new("ScrollingFrame")
+    ContentArea.Name = "ContentArea"
+    ContentArea.Size = UDim2.new(1, -24, 1, -74)
+    ContentArea.Position = UDim2.new(0, 12, 0, 62)
+    ContentArea.BackgroundTransparency = 1
+    ContentArea.BorderSizePixel = 0
+    ContentArea.ScrollBarThickness = 4
+    ContentArea.ScrollBarImageColor3 = Theme.Border
+    ContentArea.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ContentArea.ScrollingDirection = Enum.ScrollingDirection.Y
+    ContentArea.Parent = MainFrame
     
-    -- Layout for Content
+    -- Content Layout
     local ContentLayout = Instance.new("UIListLayout")
     ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ContentLayout.Padding = UDim.new(0, 8)
-    ContentLayout.Parent = ContentFrame
+    ContentLayout.Padding = UDim.new(0, 6)
+    ContentLayout.Parent = ContentArea
     
-    -- Update canvas size automatically
+    -- Auto-update canvas size
     ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        ContentFrame.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+        ContentArea.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 12)
     end)
     
-    -- Window object
+    -- Window Object
     local Window = {
         ScreenGui = ScreenGui,
         MainFrame = MainFrame,
-        ContentFrame = ContentFrame,
-        ContentLayout = ContentLayout
+        ContentArea = ContentArea,
+        ContentLayout = ContentLayout,
+        Sections = {}
     }
     
-    -- Add fade-in animation
+    -- Entrance Animation
     MainFrame.Size = UDim2.new(0, 0, 0, 0)
-    CreateTween(MainFrame, {Size = windowSize}):Play()
+    MainFrame.BackgroundTransparency = 1
+    CreateTween(MainFrame, {Size = windowSize}, SlowTween):Play()
+    CreateTween(MainFrame, {BackgroundTransparency = 0}, SlowTween):Play()
     
     return setmetatable(Window, {__index = self})
 end
 
 function UILibrary:CreateSection(window, sectionName)
-    local SectionFrame = Instance.new("Frame")
-    SectionFrame.Name = "Section_" .. sectionName
-    SectionFrame.Size = UDim2.new(1, 0, 0, 35)
-    SectionFrame.BackgroundColor3 = Theme.Secondary
-    SectionFrame.BorderSizePixel = 0
-    SectionFrame.Parent = window.ContentFrame
+    local sectionId = #window.Sections + 1
+    local isExpanded = true
     
-    CreateCorner(SectionFrame, 8)
-    CreateStroke(SectionFrame, Theme.Border, 1)
+    -- Section Container
+    local SectionContainer = Instance.new("Frame")
+    SectionContainer.Name = "Section_" .. sectionName
+    SectionContainer.Size = UDim2.new(1, 0, 0, 36)
+    SectionContainer.BackgroundTransparency = 1
+    SectionContainer.BorderSizePixel = 0
+    SectionContainer.Parent = window.ContentArea
     
-    local SectionLabel = Instance.new("TextLabel")
-    SectionLabel.Size = UDim2.new(1, -20, 1, 0)
-    SectionLabel.Position = UDim2.new(0, 15, 0, 0)
-    SectionLabel.BackgroundTransparency = 1
-    SectionLabel.Text = sectionName
-    SectionLabel.TextColor3 = Theme.Text
-    SectionLabel.TextSize = 14
-    SectionLabel.Font = Enum.Font.GothamBold
-    SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
-    SectionLabel.Parent = SectionFrame
+    -- Section Header
+    local SectionHeader = Instance.new("TextButton")
+    SectionHeader.Name = "SectionHeader"
+    SectionHeader.Size = UDim2.new(1, 0, 0, 36)
+    SectionHeader.Position = UDim2.new(0, 0, 0, 0)
+    SectionHeader.BackgroundColor3 = Theme.Surface
+    SectionHeader.BorderSizePixel = 0
+    SectionHeader.AutoButtonColor = false
+    SectionHeader.Text = ""
+    SectionHeader.Parent = SectionContainer
     
-    return SectionFrame
+    CreateCorner(SectionHeader, 6)
+    CreateStroke(SectionHeader, Theme.Border, 1)
+    
+    -- Section Icon (Arrow)
+    local SectionIcon = Instance.new("TextLabel")
+    SectionIcon.Name = "SectionIcon"
+    SectionIcon.Size = UDim2.new(0, 16, 0, 16)
+    SectionIcon.Position = UDim2.new(0, 16, 0.5, -8)
+    SectionIcon.BackgroundTransparency = 1
+    SectionIcon.Text = "▼"
+    SectionIcon.TextColor3 = Theme.TextSecondary
+    SectionIcon.TextSize = 12
+    SectionIcon.Font = Enum.Font.GothamMedium
+    SectionIcon.Parent = SectionHeader
+    
+    -- Section Title
+    local SectionTitle = Instance.new("TextLabel")
+    SectionTitle.Name = "SectionTitle"
+    SectionTitle.Size = UDim2.new(1, -50, 1, 0)
+    SectionTitle.Position = UDim2.new(0, 40, 0, 0)
+    SectionTitle.BackgroundTransparency = 1
+    SectionTitle.Text = sectionName
+    SectionTitle.TextColor3 = Theme.Text
+    SectionTitle.TextSize = 14
+    SectionTitle.Font = Enum.Font.GothamMedium
+    SectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+    SectionTitle.Parent = SectionHeader
+    
+    -- Section Content
+    local SectionContent = Instance.new("Frame")
+    SectionContent.Name = "SectionContent"
+    SectionContent.Size = UDim2.new(1, 0, 0, 0)
+    SectionContent.Position = UDim2.new(0, 0, 0, 42)
+    SectionContent.BackgroundTransparency = 1
+    SectionContent.BorderSizePixel = 0
+    SectionContent.Parent = SectionContainer
+    
+    -- Content Layout
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ContentLayout.Padding = UDim.new(0, 4)
+    ContentLayout.Parent = SectionContent
+    
+    -- Hover Effects
+    SectionHeader.MouseEnter:Connect(function()
+        CreateTween(SectionHeader, {BackgroundColor3 = Theme.Elevated}):Play()
+    end)
+    
+    SectionHeader.MouseLeave:Connect(function()
+        CreateTween(SectionHeader, {BackgroundColor3 = Theme.Surface}):Play()
+    end)
+    
+    -- Toggle Functionality
+    local function UpdateSection()
+        local contentHeight = isExpanded and ContentLayout.AbsoluteContentSize.Y + 6 or 0
+        local totalHeight = 36 + contentHeight
+        
+        CreateTween(SectionContainer, {Size = UDim2.new(1, 0, 0, totalHeight)}, SlowTween):Play()
+        CreateTween(SectionContent, {Size = UDim2.new(1, 0, 0, contentHeight)}, SlowTween):Play()
+        CreateTween(SectionIcon, {Rotation = isExpanded and 0 or -90}, SlowTween):Play()
+        
+        SectionContent.Visible = contentHeight > 0
+    end
+    
+    SectionHeader.MouseButton1Click:Connect(function()
+        isExpanded = not isExpanded
+        UpdateSection()
+    end)
+    
+    -- Auto-update content size
+    ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        if isExpanded then
+            UpdateSection()
+        end
+    end)
+    
+    -- Section Object
+    local Section = {
+        Container = SectionContainer,
+        Content = SectionContent,
+        Layout = ContentLayout,
+        IsExpanded = function() return isExpanded end,
+        Toggle = function() 
+            isExpanded = not isExpanded
+            UpdateSection()
+        end
+    }
+    
+    window.Sections[sectionId] = Section
+    UpdateSection()
+    
+    return Section
 end
 
-function UILibrary:CreateToggle(window, config)
+function UILibrary:CreateToggle(section, config)
     config = config or {}
     local toggleName = config.Name or "Toggle"
     local defaultValue = config.Default or false
@@ -213,17 +374,17 @@ function UILibrary:CreateToggle(window, config)
     
     local ToggleFrame = Instance.new("Frame")
     ToggleFrame.Name = "Toggle_" .. toggleName
-    ToggleFrame.Size = UDim2.new(1, 0, 0, 45)
-    ToggleFrame.BackgroundColor3 = Theme.Secondary
+    ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
+    ToggleFrame.BackgroundColor3 = Theme.Elevated
     ToggleFrame.BorderSizePixel = 0
-    ToggleFrame.Parent = window.ContentFrame
+    ToggleFrame.Parent = section.Content
     
-    CreateCorner(ToggleFrame, 8)
+    CreateCorner(ToggleFrame, 6)
     CreateStroke(ToggleFrame, Theme.Border, 1)
     
     local ToggleLabel = Instance.new("TextLabel")
-    ToggleLabel.Size = UDim2.new(1, -70, 1, 0)
-    ToggleLabel.Position = UDim2.new(0, 15, 0, 0)
+    ToggleLabel.Size = UDim2.new(1, -60, 1, 0)
+    ToggleLabel.Position = UDim2.new(0, 16, 0, 0)
     ToggleLabel.BackgroundTransparency = 1
     ToggleLabel.Text = toggleName
     ToggleLabel.TextColor3 = Theme.Text
@@ -233,23 +394,23 @@ function UILibrary:CreateToggle(window, config)
     ToggleLabel.Parent = ToggleFrame
     
     local ToggleButton = Instance.new("TextButton")
-    ToggleButton.Size = UDim2.new(0, 45, 0, 22)
-    ToggleButton.Position = UDim2.new(1, -55, 0.5, -11)
+    ToggleButton.Size = UDim2.new(0, 40, 0, 20)
+    ToggleButton.Position = UDim2.new(1, -50, 0.5, -10)
     ToggleButton.BackgroundColor3 = defaultValue and Theme.Accent or Theme.Border
     ToggleButton.BorderSizePixel = 0
     ToggleButton.Text = ""
     ToggleButton.Parent = ToggleFrame
     
-    CreateCorner(ToggleButton, 11)
+    CreateCorner(ToggleButton, 10)
     
     local ToggleIndicator = Instance.new("Frame")
-    ToggleIndicator.Size = UDim2.new(0, 18, 0, 18)
-    ToggleIndicator.Position = defaultValue and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+    ToggleIndicator.Size = UDim2.new(0, 16, 0, 16)
+    ToggleIndicator.Position = defaultValue and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
     ToggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     ToggleIndicator.BorderSizePixel = 0
     ToggleIndicator.Parent = ToggleButton
     
-    CreateCorner(ToggleIndicator, 9)
+    CreateCorner(ToggleIndicator, 8)
     
     local isToggled = defaultValue
     
@@ -261,20 +422,16 @@ function UILibrary:CreateToggle(window, config)
         }):Play()
         
         CreateTween(ToggleIndicator, {
-            Position = isToggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+            Position = isToggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
         }):Play()
         
         callback(isToggled)
     end)
     
-    return {Frame = ToggleFrame, SetValue = function(value)
-        isToggled = value
-        ToggleButton.BackgroundColor3 = isToggled and Theme.Accent or Theme.Border
-        ToggleIndicator.Position = isToggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
-    end}
+    return ToggleFrame
 end
 
-function UILibrary:CreateSlider(window, config)
+function UILibrary:CreateSlider(section, config)
     config = config or {}
     local sliderName = config.Name or "Slider"
     local minValue = config.Min or 0
@@ -284,17 +441,17 @@ function UILibrary:CreateSlider(window, config)
     
     local SliderFrame = Instance.new("Frame")
     SliderFrame.Name = "Slider_" .. sliderName
-    SliderFrame.Size = UDim2.new(1, 0, 0, 60)
-    SliderFrame.BackgroundColor3 = Theme.Secondary
+    SliderFrame.Size = UDim2.new(1, 0, 0, 55)
+    SliderFrame.BackgroundColor3 = Theme.Elevated
     SliderFrame.BorderSizePixel = 0
-    SliderFrame.Parent = window.ContentFrame
+    SliderFrame.Parent = section.Content
     
-    CreateCorner(SliderFrame, 8)
+    CreateCorner(SliderFrame, 6)
     CreateStroke(SliderFrame, Theme.Border, 1)
     
     local SliderLabel = Instance.new("TextLabel")
-    SliderLabel.Size = UDim2.new(1, -15, 0, 20)
-    SliderLabel.Position = UDim2.new(0, 15, 0, 8)
+    SliderLabel.Size = UDim2.new(1, -60, 0, 20)
+    SliderLabel.Position = UDim2.new(0, 16, 0, 8)
     SliderLabel.BackgroundTransparency = 1
     SliderLabel.Text = sliderName
     SliderLabel.TextColor3 = Theme.Text
@@ -305,39 +462,39 @@ function UILibrary:CreateSlider(window, config)
     
     local ValueLabel = Instance.new("TextLabel")
     ValueLabel.Size = UDim2.new(0, 50, 0, 20)
-    ValueLabel.Position = UDim2.new(1, -65, 0, 8)
+    ValueLabel.Position = UDim2.new(1, -60, 0, 8)
     ValueLabel.BackgroundTransparency = 1
     ValueLabel.Text = tostring(defaultValue)
     ValueLabel.TextColor3 = Theme.Accent
     ValueLabel.TextSize = 12
-    ValueLabel.Font = Enum.Font.GothamBold
+    ValueLabel.Font = Enum.Font.GothamMedium
     ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
     ValueLabel.Parent = SliderFrame
     
-    local SliderBackground = Instance.new("Frame")
-    SliderBackground.Size = UDim2.new(1, -30, 0, 6)
-    SliderBackground.Position = UDim2.new(0, 15, 1, -20)
-    SliderBackground.BackgroundColor3 = Theme.Border
-    SliderBackground.BorderSizePixel = 0
-    SliderBackground.Parent = SliderFrame
+    local SliderTrack = Instance.new("Frame")
+    SliderTrack.Size = UDim2.new(1, -32, 0, 4)
+    SliderTrack.Position = UDim2.new(0, 16, 1, -18)
+    SliderTrack.BackgroundColor3 = Theme.Border
+    SliderTrack.BorderSizePixel = 0
+    SliderTrack.Parent = SliderFrame
     
-    CreateCorner(SliderBackground, 3)
+    CreateCorner(SliderTrack, 2)
     
     local SliderFill = Instance.new("Frame")
     SliderFill.Size = UDim2.new((defaultValue - minValue) / (maxValue - minValue), 0, 1, 0)
     SliderFill.Position = UDim2.new(0, 0, 0, 0)
     SliderFill.BackgroundColor3 = Theme.Accent
     SliderFill.BorderSizePixel = 0
-    SliderFill.Parent = SliderBackground
+    SliderFill.Parent = SliderTrack
     
-    CreateCorner(SliderFill, 3)
+    CreateCorner(SliderFill, 2)
     
     local SliderButton = Instance.new("TextButton")
-    SliderButton.Size = UDim2.new(1, 0, 1, 0)
-    SliderButton.Position = UDim2.new(0, 0, 0, 0)
+    SliderButton.Size = UDim2.new(1, 0, 1, 8)
+    SliderButton.Position = UDim2.new(0, 0, 0, -4)
     SliderButton.BackgroundTransparency = 1
     SliderButton.Text = ""
-    SliderButton.Parent = SliderBackground
+    SliderButton.Parent = SliderTrack
     
     local currentValue = defaultValue
     local dragging = false
@@ -357,7 +514,7 @@ function UILibrary:CreateSlider(window, config)
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local mouse = UserInputService:GetMouseLocation()
-            local relativePos = math.clamp((mouse.X - SliderBackground.AbsolutePosition.X) / SliderBackground.AbsoluteSize.X, 0, 1)
+            local relativePos = math.clamp((mouse.X - SliderTrack.AbsolutePosition.X) / SliderTrack.AbsoluteSize.X, 0, 1)
             currentValue = math.floor(minValue + (maxValue - minValue) * relativePos)
             
             ValueLabel.Text = tostring(currentValue)
@@ -367,38 +524,29 @@ function UILibrary:CreateSlider(window, config)
         end
     end)
     
-    return {Frame = SliderFrame, SetValue = function(value)
-        currentValue = math.clamp(value, minValue, maxValue)
-        local relativePos = (currentValue - minValue) / (maxValue - minValue)
-        ValueLabel.Text = tostring(currentValue)
-        SliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
-    end}
+    return SliderFrame
 end
 
-function UILibrary:CreateButton(window, config)
+function UILibrary:CreateButton(section, config)
     config = config or {}
     local buttonName = config.Name or "Button"
     local callback = config.Callback or function() end
     
     local ButtonFrame = Instance.new("TextButton")
     ButtonFrame.Name = "Button_" .. buttonName
-    ButtonFrame.Size = UDim2.new(1, 0, 0, 40)
+    ButtonFrame.Size = UDim2.new(1, 0, 0, 36)
     ButtonFrame.BackgroundColor3 = Theme.Accent
     ButtonFrame.BorderSizePixel = 0
     ButtonFrame.Text = buttonName
     ButtonFrame.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ButtonFrame.TextSize = 14
-    ButtonFrame.Font = Enum.Font.GothamBold
-    ButtonFrame.Parent = window.ContentFrame
+    ButtonFrame.TextSize = 13
+    ButtonFrame.Font = Enum.Font.GothamMedium
+    ButtonFrame.Parent = section.Content
     
-    CreateCorner(ButtonFrame, 8)
+    CreateCorner(ButtonFrame, 6)
     
     ButtonFrame.MouseEnter:Connect(function()
-        CreateTween(ButtonFrame, {BackgroundColor3 = Color3.fromRGB(
-            Theme.Accent.R + 0.1,
-            Theme.Accent.G + 0.1,
-            Theme.Accent.B + 0.1
-        )}):Play()
+        CreateTween(ButtonFrame, {BackgroundColor3 = Theme.AccentHover}):Play()
     end)
     
     ButtonFrame.MouseLeave:Connect(function()
@@ -406,16 +554,16 @@ function UILibrary:CreateButton(window, config)
     end)
     
     ButtonFrame.MouseButton1Click:Connect(function()
-        CreateTween(ButtonFrame, {Size = UDim2.new(1, -4, 0, 36)}):Play()
+        CreateTween(ButtonFrame, {Size = UDim2.new(1, -2, 0, 34)}):Play()
         wait(0.1)
-        CreateTween(ButtonFrame, {Size = UDim2.new(1, 0, 0, 40)}):Play()
+        CreateTween(ButtonFrame, {Size = UDim2.new(1, 0, 0, 36)}):Play()
         callback()
     end)
     
     return ButtonFrame
 end
 
-function UILibrary:CreateTextbox(window, config)
+function UILibrary:CreateTextbox(section, config)
     config = config or {}
     local textboxName = config.Name or "Textbox"
     local placeholder = config.Placeholder or "Enter text..."
@@ -423,17 +571,17 @@ function UILibrary:CreateTextbox(window, config)
     
     local TextboxFrame = Instance.new("Frame")
     TextboxFrame.Name = "Textbox_" .. textboxName
-    TextboxFrame.Size = UDim2.new(1, 0, 0, 60)
-    TextboxFrame.BackgroundColor3 = Theme.Secondary
+    TextboxFrame.Size = UDim2.new(1, 0, 0, 55)
+    TextboxFrame.BackgroundColor3 = Theme.Elevated
     TextboxFrame.BorderSizePixel = 0
-    TextboxFrame.Parent = window.ContentFrame
+    TextboxFrame.Parent = section.Content
     
-    CreateCorner(TextboxFrame, 8)
+    CreateCorner(TextboxFrame, 6)
     CreateStroke(TextboxFrame, Theme.Border, 1)
     
     local TextboxLabel = Instance.new("TextLabel")
-    TextboxLabel.Size = UDim2.new(1, -15, 0, 20)
-    TextboxLabel.Position = UDim2.new(0, 15, 0, 8)
+    TextboxLabel.Size = UDim2.new(1, -20, 0, 20)
+    TextboxLabel.Position = UDim2.new(0, 16, 0, 8)
     TextboxLabel.BackgroundTransparency = 1
     TextboxLabel.Text = textboxName
     TextboxLabel.TextColor3 = Theme.Text
@@ -443,21 +591,21 @@ function UILibrary:CreateTextbox(window, config)
     TextboxLabel.Parent = TextboxFrame
     
     local TextBox = Instance.new("TextBox")
-    TextBox.Size = UDim2.new(1, -30, 0, 25)
-    TextBox.Position = UDim2.new(0, 15, 1, -30)
+    TextBox.Size = UDim2.new(1, -32, 0, 22)
+    TextBox.Position = UDim2.new(0, 16, 1, -28)
     TextBox.BackgroundColor3 = Theme.Background
     TextBox.BorderSizePixel = 0
     TextBox.Text = ""
     TextBox.PlaceholderText = placeholder
     TextBox.TextColor3 = Theme.Text
-    TextBox.PlaceholderColor3 = Theme.TextSecondary
+    TextBox.PlaceholderColor3 = Theme.TextMuted
     TextBox.TextSize = 12
     TextBox.Font = Enum.Font.Gotham
     TextBox.TextXAlignment = Enum.TextXAlignment.Left
     TextBox.ClearButtonOnFocus = false
     TextBox.Parent = TextboxFrame
     
-    CreateCorner(TextBox, 6)
+    CreateCorner(TextBox, 4)
     CreateStroke(TextBox, Theme.Border, 1)
     
     TextBox.FocusLost:Connect(function(enterPressed)
@@ -466,58 +614,77 @@ function UILibrary:CreateTextbox(window, config)
         end
     end)
     
-    return {Frame = TextboxFrame, GetText = function() return TextBox.Text end, SetText = function(text) TextBox.Text = text end}
+    return TextboxFrame
 end
 
--- Example Usage Function
+-- Example Usage
 function UILibrary:CreateExample()
     local Window = self:CreateWindow({
-        Name = "Modern UI Library",
-        Size = UDim2.new(0, 450, 0, 500)
+        Name = "Professional Interface",
+        Size = UDim2.new(0, 480, 0, 600)
     })
     
-    self:CreateSection(Window, "🎮 Main Controls")
+    local MainSection = self:CreateSection(Window, "Main Controls")
     
-    self:CreateToggle(Window, {
+    self:CreateToggle(MainSection, {
         Name = "Enable Feature",
         Default = false,
         Callback = function(value)
-            print("Toggle:", value)
+            print("Feature enabled:", value)
         end
     })
     
-    self:CreateSlider(Window, {
+    self:CreateSlider(MainSection, {
         Name = "Speed Multiplier",
         Min = 1,
         Max = 10,
         Default = 5,
         Callback = function(value)
-            print("Slider:", value)
+            print("Speed set to:", value)
         end
     })
     
-    self:CreateButton(Window, {
+    self:CreateButton(MainSection, {
         Name = "Execute Action",
         Callback = function()
-            print("Button clicked!")
+            print("Action executed")
         end
     })
     
-    self:CreateTextbox(Window, {
-        Name = "Player Name",
-        Placeholder = "Enter player name...",
+    local ConfigSection = self:CreateSection(Window, "Configuration")
+    
+    self:CreateTextbox(ConfigSection, {
+        Name = "Target Player",
+        Placeholder = "Enter username...",
         Callback = function(text)
-            print("Textbox:", text)
+            print("Target set to:", text)
         end
     })
     
-    self:CreateSection(Window, "⚙️ Settings")
-    
-    self:CreateToggle(Window, {
-        Name = "Auto-Save",
+    self:CreateToggle(ConfigSection, {
+        Name = "Auto-Execute",
         Default = true,
         Callback = function(value)
-            print("Auto-Save:", value)
+            print("Auto-execute:", value)
+        end
+    })
+    
+    local AdvancedSection = self:CreateSection(Window, "Advanced Settings")
+    
+    self:CreateSlider(AdvancedSection, {
+        Name = "Precision",
+        Min = 1,
+        Max = 100,
+        Default = 50,
+        Callback = function(value)
+            print("Precision set to:", value)
+        end
+    })
+    
+    self:CreateButton(AdvancedSection, {
+        Name = "Reset Configuration",
+        Callback = function()
+            print("Configuration reset")
         end
     })
     
